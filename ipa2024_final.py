@@ -1,7 +1,7 @@
 #######################################################################################
 # Yourname:
 # Your student ID:
-# Your GitHub Repo: 
+# Your GitHub Repo:
 
 #######################################################################################
 # 1. Import libraries for API requests, JSON formatting, time, os, (restconf_final or netconf_final), netmiko_final, and ansible_final.
@@ -47,7 +47,7 @@ while True:
     getHTTPHeader = {"Authorization": f"Bearer {ACCESS_TOKEN}"}
 
 # 4. Provide the URL to the Webex Teams messages API, and extract location from the received message.
-    
+
     # Send a GET request to the Webex Teams messages API.
     # - Use the GetParameters to get only the latest message.
     # - Store the message in the "r" variable.
@@ -76,7 +76,7 @@ while True:
     # store the text of the first message in the array
     message = messages[0]["text"]
     print("Received message: " + message)
-    
+
     if message_id == last_message_id:
         continue
     else:
@@ -95,7 +95,7 @@ while True:
 # 5. Complete the logic for each command
 
         if command == "create":
-            responseMessage = restconf_final.create()     
+            responseMessage = restconf_final.create()
         elif command == "delete":
             responseMessage = restconf_final.delete()
         elif command == "enable":
@@ -107,38 +107,50 @@ while True:
         elif command == "gigabit_status":
             responseMessage = netmiko_final.gigabit_status()
         elif command == "showrun":
-            responseMessage = ansible_final.showrun()
+            result = ansible_final.showrun()
+            if os.path.isfile(result):
+                responseMessage = "Backup success"
+                filename = result
+            else:
+                responseMessage = result
+                filename = None
         else:
             responseMessage = "Error: No command or unknown command"
 
-        if command == "showrun" and responseMessage == 'ok':
-            filename = "show_run_66070118_R1-Exam.txt"
+        if command == "showrun" and filename and os.path.exists(filename):
             with open(filename, "rb") as fileobject:
                 postData = MultipartEncoder({
                     "roomId": roomIdToGetMessages,
-                    "text": "show running config",
-                    "files": (filename, fileobject, "text/plain"),
+                    "text": "Show running-config",
+                    "files": (os.path.basename(filename), fileobject, "text/plain"),
                 })
                 HTTPHeaders = {
                     "Authorization": f"Bearer {ACCESS_TOKEN}",
-                    "Content-Type": postData.content_type  
+                    "Content-Type": postData.content_type
                 }
-        else:
-            postData = {"roomId": roomIdToGetMessages, "text": responseMessage}
-            postData = json.dumps(postData)
 
-            # the Webex Teams HTTP headers, including the Authoriztion and Content-Type
+                r = requests.post(
+                    "https://webexapis.com/v1/messages",
+                    data=postData,
+                    headers=HTTPHeaders,
+                )
+
+        else:
+            postData = json.dumps({
+                "roomId": roomIdToGetMessages,
+                "text": responseMessage or "No output received."
+            })
             HTTPHeaders = {
                 "Authorization": f"Bearer {ACCESS_TOKEN}",
-                "Content-Type": "application/json" 
-            } 
+                "Content-Type": "application/json"
+            }
 
-        # Post the call to the Webex Teams message API.
-        r = requests.post(
-            "https://webexapis.com/v1/messages",
-            data=postData,
-            headers=HTTPHeaders,
-        )
+            r = requests.post(
+                "https://webexapis.com/v1/messages",
+                data=postData,
+                headers=HTTPHeaders,
+            )
+
         if not r.status_code == 200:
             raise Exception(
                 "Incorrect reply from Webex Teams API. Status code: {}".format(r.status_code)

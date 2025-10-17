@@ -4,23 +4,24 @@ import os
 def showrun():
     studentID = "66070118"
     router_name = "R1-Exam"
+    filename = f"show_run_{studentID}_{router_name}.txt"
+
     command = [
         "ansible-playbook",
         "-i", "inventory.ini",
-        "backup_cisco_router_playbook.yml"
+        "backup_cisco_router_playbook.yaml"
     ]
 
-    # รัน playbook
-    result = subprocess.run(command, capture_output=True, text=True)
-    
-    if "ok=2" in result.stdout or "changed=0" in result.stdout:
-        filename = f"backups/show_run_{studentID}_{router_name}.txt"
+    result = subprocess.run(command, cwd=os.getcwd(), capture_output=True, text=True)
+    print("\n--- STDOUT ---\n", result.stdout)
+    print("\n--- STDERR ---\n", result.stderr)
+    print("--------------\n")
+
+    if result.returncode == 0:
+        print("Playbook executed successfully (Return Code: 0).")
         if os.path.exists(filename):
-            print(f"File found: {filename}")
+            print(f"Backup file found: {filename}")
             return filename
-        else:
-            print(f"File NOT found: {filename}")
-            return "Error: File not found"
     else:
-        print("Playbook failed")
-        return "Error: Ansible"
+        print(f"Playbook failed (Return Code: {result.returncode}).")
+        return f"Error: Ansible"
