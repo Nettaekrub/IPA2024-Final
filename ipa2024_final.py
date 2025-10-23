@@ -29,7 +29,7 @@ ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
 
 # Defines a variable that will hold the roomId
 roomIdToGetMessages = (
-    "Y2lzY29zcGFyazovL3VybjpURUFNOnVzLXdlc3QtMl9yL1JPT00vOWIwNzNlNTEtYWI3Mi0xMWYwLTlkZjctOGY2NGVjYWM4NDEz"
+    "Y2lzY29zcGFyazovL3VybjpURUFNOnVzLXdlc3QtMl9yL1JPT00vYmQwODczMTAtNmMyNi0xMWYwLWE1MWMtNzkzZDM2ZjZjM2Zm"
 )
 
 last_message_id = None

@@ -11,6 +11,9 @@ def showrun():
         "-i", "inventory.ini",
         "backup_cisco_router_playbook.yaml"
     ]
+    
+    env = os.environ.copy()
+    env["ANSIBLE_HOST_KEY_CHECKING"] = "False"
 
     result = subprocess.run(command, cwd=os.getcwd(), capture_output=True, text=True)
     print("\n--- STDOUT ---\n", result.stdout)
